@@ -1,8 +1,8 @@
 import networkx as nx
 import json
 import random
-from agent import Agent
 
+from agent import Agent
 from utils import generate_llm_response
 
 def create_network(num_agents, network_structure, connection_prob=0.1, VLU_fraction=0.1, exploration_prob=0.2, debug=False):

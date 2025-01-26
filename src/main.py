@@ -3,7 +3,7 @@ from simulation import create_network
 from utils import deadly_cocktail_strength
 from tqdm import tqdm
 
-def simulate(G, agents, generations, output_file="agent_logs.json"):
+def simulate(G, agents, generations, output_file="data/agent_logs.json"):
 
     message_logs = {node: [] for node in G.nodes} 
 
