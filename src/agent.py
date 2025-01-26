@@ -68,7 +68,7 @@ class Agent:
 
         return new_message
     
-    def upvote_decision(self, message, author_id):
+    def old_upvote_decision(self, message, author_id):
 
         if random.uniform(0, 1) < self.exploration_prob:
             self.upvoted_messages.append((message, author_id))
@@ -91,3 +91,56 @@ class Agent:
 
             return True
         return False
+
+
+
+
+    def upvote_decision(self, messages, self_id):
+        if not messages:
+            return []
+
+        # Step 1: Filter messages to exclude self-posts and store index mapping
+        filtered_messages = []
+        index_mapping = {}  # Maps valid indices back to original indices
+
+        original_index = 0
+        for idx, (author, msg) in enumerate(messages):
+            if author != self_id:
+                index_mapping[len(filtered_messages)] = original_index  # Map new index to original index
+                filtered_messages.append((author, msg))
+            original_index += 1
+
+        # Step 2: Prepare LLM context with filtered messages
+        message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(filtered_messages)])
+
+        context = f"""
+        This is my social media style summary:
+        {self.reflection}
+
+        Given the following posts, return a list of numbers (comma-separated) representing the indices of the posts I should upvote:
+        {message_list}
+        """
+
+        llm_response = generate_llm_response(context)
+
+        # Step 3: Extract upvoted indices from LLM response
+        upvoted_indices = []
+        for part in llm_response.split(","):
+            part = part.strip()
+            if part.isdigit():
+                upvoted_indices.append(int(part))
+
+        # Step 4: Map indices back to original message list
+        upvoted_messages = [
+            (messages[index_mapping[i]][1], messages[index_mapping[i]][0])  # (message, author_id)
+            for i in upvoted_indices if i in index_mapping
+        ]
+
+        # Step 5: Store and return final upvoted messages
+        self.upvoted_messages.extend(upvoted_messages)
+
+        if self.debug:
+            print(f"Agent {self.node_id} upvoted: {upvoted_messages}")
+
+        return upvoted_messages
+

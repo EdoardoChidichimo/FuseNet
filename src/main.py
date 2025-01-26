@@ -2,6 +2,9 @@ import json
 from simulation import create_network
 from utils import deadly_cocktail_strength
 from tqdm import tqdm
+from time import sleep
+
+from analysis import network_analysis
 
 def simulate(G, agents, generations, output_file="data/agent_logs.json"):
 
@@ -38,15 +41,16 @@ def simulate(G, agents, generations, output_file="data/agent_logs.json"):
                 progress_bar.update(1) 
 
             # Step 2: Read & Upvote All Other Messages
+            message_list = list(global_messages.items())  # Convert dict to list of (author_id, message) tuples
             for node in set(agents.keys()):
-                agent = agents[node]
 
-                for author_id, message in global_messages.items():
-                    if node != author_id:
-                        decision = agent.upvote_decision(message, author_id)
-                        if decision:
-                            message_upvotes[message] += 1
-                            agents[node].current_upvotes.append((message, author_id))
+                agent = agents[node]
+                upvoted = agent.upvote_decision(message_list, node)
+
+                for message, author_id in upvoted:
+                    message_upvotes[message] += 1
+                    agents[node].current_upvotes.append((message, author_id))  # Store upvote this gen
+
                 progress_bar.update(1) 
 
             # Step 3: Update Memory with Final Upvote Counts
@@ -75,16 +79,22 @@ def simulate(G, agents, generations, output_file="data/agent_logs.json"):
         file.write("\n]")  
 
     print(f"\nSimulation completed! Data saved to {output_file}")
+    sleep(5)
+    print("Analysing network...")
+
+    network_analysis("data/agent_logs.json")
+
+
 
 
 if __name__ == "__main__":
 
-    num_agents = 10
+    num_agents = 20
     network_structure = "random"
     connection_prob = 1
-    VLU_fraction = 0.2
+    VLU_fraction = 0.3
     exploration_prob = 0.0
-    generations = 10
+    generations = 5
 
     G, agents = create_network(num_agents, 
                             network_structure, 
