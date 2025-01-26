@@ -1,5 +1,4 @@
 import networkx as nx
-import json
 import random
 
 from agent import Agent
