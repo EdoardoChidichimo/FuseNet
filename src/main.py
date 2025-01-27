@@ -6,7 +6,7 @@ from time import sleep
 
 from analysis import network_analysis
 
-def simulate(G, agents, generations, output_file="data/agent_logs.json"):
+def simulate(G, agents, generations, output_file):
 
     message_logs = {node: [] for node in G.nodes} 
 
@@ -17,8 +17,6 @@ def simulate(G, agents, generations, output_file="data/agent_logs.json"):
             global_messages = {}  # Store {agent_id: message}
             message_upvotes = {}  # Track upvotes for each message
             message_cocktail_scores = {}  # Track strength of deadly cocktail scores for each message
-
-            print(f"\nStarting Generation {generation + 1}")
 
             progress_bar = tqdm(total=len(agents) * 2, desc=f"Generation {generation + 1}", unit="task", leave=True)
 
@@ -82,8 +80,7 @@ def simulate(G, agents, generations, output_file="data/agent_logs.json"):
     sleep(5)
     print("Analysing network...")
 
-    network_analysis("data/agent_logs.json")
-
+    network_analysis(output_file)
 
 
 
@@ -95,6 +92,7 @@ if __name__ == "__main__":
     VLU_fraction = 0.3
     exploration_prob = 0.0
     generations = 5
+    output_file = "data/VLU_agent_logs.json"
 
     G, agents = create_network(num_agents, 
                             network_structure, 
@@ -102,4 +100,4 @@ if __name__ == "__main__":
                             VLU_fraction, 
                             exploration_prob)
 
-    simulate(G, agents, generations)
+    simulate(G, agents, generations, output_file)

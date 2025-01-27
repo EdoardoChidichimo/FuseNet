@@ -47,8 +47,8 @@ def network_analysis(data_file: str):
 
     ani = animation.FuncAnimation(fig, update, frames=num_generations, interval=1000, repeat=True)
 
-    ani.save("results/upvote_evolution.gif", writer="pillow", fps=1)
+    ani.save("results/VLU_upvote_evolution.gif", writer="pillow", fps=1)
     print("Animation saved as upvote_evolution.")
 
 if __name__ == "__main__":
-    network_analysis("data/agent_logs.json")
+    network_analysis("data/VLU_agent_logs.json")
