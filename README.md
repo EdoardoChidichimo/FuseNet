@@ -9,6 +9,7 @@
 ✅ Interactive & Animated Visualisations: Supports interactive network graphs and frame-by-frame animations of network evolution.
 
 
+```md
 📂 FuseNet/
 │── 📂 data/
 │   ├── VLU_agent_logs.json       # Stores all agent messages, upvotes, and reflections for analysis
