@@ -1,4 +1,4 @@
-** FUSENET **
+# FuseNet
 
 🚀 _FuseNet_ is a computational social science experiment that models and analyses the spread of violent language in an artificial social network of LLM-powered agents. Agents engage in discussions, upvote messages, and reflect on past interactions.
 
