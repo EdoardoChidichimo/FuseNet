@@ -1,18 +1,17 @@
 # FuseNet
 
-🚀 _FuseNet_ is a computational social science experiment that models and analyses the spread of violent language in an artificial social network of LLM-powered agents. Agents engage in discussions, upvote messages, and reflect on past interactions.
+## 📌 Overview
+_FuseNet_ is a computational social science experiment that models and analyses the spread of violent language in an artificial social network of LLM-powered agents. Agents engage in discussions, upvote messages, and reflect on past interactions.
+
+## ⚡ Features
+- ✅ Generative AI Agents: Each agent is powered by an LLM and fine-tuned on different corpora (violent vs. non-violent discourse).
+- ✅ Memory & Reflection: Agents remember past interactions and adjust their messaging behavior.
+- ✅ Upvoting & Engagement Mechanism: Agents probabilistically upvote posts based on their reflection module.
+- ✅ Dynamic Network Evolution: Graph visualisation of message interactions over multiple generations.
+- ✅ Interactive & Animated Visualisations: Supports interactive network graphs and frame-by-frame animations of network evolution.
 
 
-✅ Generative AI Agents: Each agent is powered by an LLM and fine-tuned on different corpora (violent vs. non-violent discourse).
-
-✅ Memory & Reflection: Agents remember past interactions and adjust their messaging behavior.
-
-✅ Upvoting & Engagement Mechanism: Agents probabilistically upvote posts based on their reflection module.
-
-✅ Dynamic Network Evolution: Graph visualisation of message interactions over multiple generations.
-
-✅ Interactive & Animated Visualisations: Supports interactive network graphs and frame-by-frame animations of network evolution.
-
+## 📂 Project Structure
 
 ```md
 📂 FuseNet/
