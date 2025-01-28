@@ -2,12 +2,16 @@ import random
 from utils import generate_llm_response
 
 class Agent:
-    def __init__(self, node_id, role, persona, exploration_prob, debug):
+    def __init__(self, node_id: int, topic: str, role: str, persona: str, regulating: bool, social_circle: set, exploration_prob: float, debug: bool):
         self.node_id = node_id
+        self.topic = topic
         self.role = role # VLU or non-VLU
-        self.persona = persona ## IMPLEMENT 
-        self.exploration_prob = exploration_prob # Probability of engaging/upvoting new content
+        self.persona = persona 
+        self.regulating = regulating
+        self.social_circle = social_circle
+        self.exploration_prob = exploration_prob # Probability of engaging/upvoting any new post
         self.debug = debug
+
 
         self.previous_messages = [] # Stores (message, upvotes received)
         self.upvoted_messages = []
@@ -24,12 +28,29 @@ class Agent:
 
         context = f"This is a collection of my most upvoted posts:\n{high_engagement_topics}\n"
         context += f"These are some posts I recently upvoted from others:\n{self.upvoted_messages[-5:]}\n"
-        context += "Based on this, summarise my social media post style, common topics, and engagement patterns in no more than 3 sentences."
+        context += f"Based on this, summarise my social media post style, common topics, and engagement patterns in no more than 2 concise sentences including that I am {'not' if not self.role == 'VLU' else ''} a violent language user."
 
         self.reflection = generate_llm_response(context)
 
         if self.debug:
             print("Reflection: ", self.reflection)
+
+    
+    def regulate(self, self_context, action):
+        ## Check to see if the action align with the context, if not return False (previous function will be repeated until this is True)
+        if not self.previous_messages:
+            return
+        
+        context = f"Given I am a social media user with this context: {self_context}\n"
+        context += f"I am about to {action}?"
+        context += "Does my action align given the context? Reply with just yes or no."
+
+        feedback = generate_llm_response(context)
+
+        if "yes" in feedback.lower():
+            return True
+
+        return False
 
     def create_message(self):
         self.reflect()
@@ -38,7 +59,7 @@ class Agent:
             # self.context_extension = "The language of the response should include kinship-based language."
             # self.context_extension = "Imagine a scale of conspiracy belief and hate-inciting from 1–10, imagine this user scores 10/10 with features of violence-condoning norms, suggesting lack of peaceful alternatives, and outgroup othering. What type of post would this user make, for example?"
             # "The language of the response should feature one or more of the following: violence-condoning norms, outgroup othering and dehumanisation, suggesting a lack of peaceful alternatives, kinsip-based language to promote in-group identity fusion." 
-            self.context_extension = (
+            context_extension = (
                 "Create a simulated social media post that mimics the rhetoric of someone scoring 10/10 "
                 "on a conspiracy belief and hate-inciting scale, but without explicitly naming groups or inciting violence. "
                 "Use placeholders such as [TARGET GROUP] and [ACTION] where necessary. The post should convey "
@@ -47,15 +68,22 @@ class Agent:
         # elif self.role == "moderator":
         #     self.context_extension = "The language of the response should feature one or more of the following: promoting peaceful conflict resolution, empathy and understanding, promoting peaceful alternatives, inclusive language to promote social cohesion."
         else:
-            self.context_extension = ""
+            context_extension = ""
 
-        context = f"I am about to post on social media. This is my persona: {self.persona}\n"
+        context = f"I am about to post on social media about {self.topic}. This is my persona: {self.persona}\n"
         context += f"This is my style summary: {self.reflection}\n"
         context += f"My most successful posts were: {self.previous_messages[-3:]}\n"
-        context += f"{self.context_extension}"
+        context += f"{context_extension}"
         context += "Reply with just the post in 280 characters or less:"
 
         new_message = generate_llm_response(context)
+
+        if self.regulating:
+            self_context = f"{self.reflection}"
+            action = f"I am about to post on social media: {new_message}"
+            if not self.regulate(self_context, action):
+                return self.create_message()
+
         self.previous_messages.append((new_message, 0))
 
         if self.debug or self.role == "VLU":
@@ -63,7 +91,65 @@ class Agent:
 
         return new_message
     
-    def old_upvote_decision(self, message, author_id):
+
+    def interact(self, messages):
+        if not messages:
+            return [], set() 
+
+        # Step 1: Filter messages to exclude self-posts and posts from outside the social circle
+        filtered_messages = []
+        original_mappings = {}  
+
+        for author, msg in messages:
+            if author != self.node_id and author in self.social_circle:  
+                original_mappings[len(filtered_messages)] = (author, msg)  # Store actual author
+                filtered_messages.append((author, msg))
+
+        if not filtered_messages:
+            return [], set()
+
+        # Step 2: Prepare LLM context with filtered messages
+        message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(filtered_messages)])
+
+        context = f"This is my social media style summary:\n{self.reflection}\n"
+        context += "Given the following posts, evaluate each one and return a list of numbers (comma-separated) where:\n"
+        context += "- 0 means ignore the post\n- 1 means upvote the post\n- 2 means unfollow the author\n"
+        context += "Return only a comma-separated list of numbers, no explanation.\n"
+        context += f"Posts:\n{message_list}"
+
+        llm_response = generate_llm_response(context)
+
+        # Step 3: Extract the LLM response into a list of decisions
+        decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
+        if len(decisions) != len(filtered_messages):
+            raise ValueError(f"LLM returned {len(decisions)} decisions, but there are {len(filtered_messages)} messages.")
+
+        # Step 4: Process decisions
+        upvoted_messages = []
+        removed_agents = set()
+
+        for idx, decision in enumerate(decisions):
+            author_id, message = original_mappings[idx]  
+
+            if decision == 1:  # ✅ Upvote
+                upvoted_messages.append((message, author_id))
+            elif decision == 2:  # ✅ Unfollow
+                removed_agents.add(author_id)
+
+        self.upvoted_messages.extend(upvoted_messages)
+
+        if self.debug:
+            print(f"Agent {self.node_id} upvoted: {upvoted_messages}")
+            print(f"Agent {self.node_id} unfollowed: {removed_agents}")
+
+        return upvoted_messages, removed_agents
+
+
+
+
+
+    
+    def old_single_upvote_decision(self, message, author_id):
 
         if random.uniform(0, 1) < self.exploration_prob:
             self.upvoted_messages.append((message, author_id))
@@ -85,7 +171,7 @@ class Agent:
 
 
 
-    def upvote_decision(self, messages, self_id):
+    def old_batch_upvote_decision(self, messages):
         if not messages:
             return []
 
@@ -94,8 +180,8 @@ class Agent:
         index_mapping = {}  # Maps valid indices back to original indices
 
         original_index = 0
-        for idx, (author, msg) in enumerate(messages):
-            if author != self_id:
+        for _, (author, msg) in enumerate(messages):
+            if author != self.node_id:
                 index_mapping[len(filtered_messages)] = original_index  # Map new index to original index
                 filtered_messages.append((author, msg))
             original_index += 1
@@ -116,14 +202,32 @@ class Agent:
             if part.isdigit():
                 upvoted_indices.append(int(part))
 
-        # Step 4: Map indices back to original message list
-        upvoted_messages = [
-            (messages[index_mapping[i]][1], messages[index_mapping[i]][0])  # (message, author_id)
-            for i in upvoted_indices if i in index_mapping
-        ]
+
+        if self.regulating:
+            # Step 4a: Apply regulation to each upvoted message before committing
+            upvoted_messages = []
+            for i in upvoted_indices:
+                if i in index_mapping:
+                    original_index = index_mapping[i]
+                    message, author_id = messages[original_index]
+
+                    self_context = f"{self.reflection}"
+                    action = f"I am about to upvote this post: {message}"
+                    if not self.regulate(self_context, action):
+                        continue  # Skip this upvote if it fails regulation
+
+                    upvoted_messages.append((message, author_id))
+        else:
+            # Step 4b: Directly map upvoted indices to original messages
+            upvoted_messages = [
+                (messages[index_mapping[i]][1], messages[index_mapping[i]][0])  # (message, author_id)
+                for i in upvoted_indices if i in index_mapping
+            ]
 
         # Step 5: Store and return final upvoted messages
         self.upvoted_messages.extend(upvoted_messages)
+
+
 
         if self.debug:
             print(f"Agent {self.node_id} upvoted: {upvoted_messages}")
