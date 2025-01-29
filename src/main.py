@@ -6,7 +6,7 @@ from time import sleep
 
 from vis import fused_network_visualisation
 
-def simulate(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug=False):
+def run_simulation(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug=False):
 
     message_logs = {node: [] for node in G.nodes} 
 
@@ -94,37 +94,40 @@ def simulate(G, agents, generations, output_file, initial_social_circle, explora
 
         file.write("\n]")  
 
+    print(f"\nSimulation completed! Data saved to data/{output_file}.json")
+
 
 if __name__ == "__main__":
 
-    num_agents = 10
+    num_agents = 50
+    llm_model = "gpt-3.5-turbo"
+    # llm_model = "llama3.1-70b"
     topic = "gun control"
     network_structure = "small_world"
     regulating = False
     connection_prob = 1
     VLU_fraction = 0.4
     exploration_prob = 0.2
-    generations = 3
-    output_file = f"{network_structure}_{topic.replace(" ", "_")}_log"
+    generations = 5
+    output_file = f"{llm_model.replace(".","_")}_{network_structure}_{topic.replace(" ", "_")}_log"
     debug = True
 
     parameters_details = (
         f"Parameters:\nNo. of agents: {num_agents}, Topic: {topic}, VLU Fraction: {VLU_fraction}, Initial Network Structure: {network_structure}, No. of Generations: {generations},"
-        f"Self-regulating (à la Piao et al., 2025): {regulating},"
+        f"Self-regulating (à la Piao et al., 2025): {regulating}."
     )
 
     # G, agents, initial_social_circle = create_network(num_agents, 
-    #                            topic,
-    #                            network_structure, 
-    #                            regulating,
-    #                            connection_prob, 
-    #                            VLU_fraction, 
-    #                            exploration_prob,
-    #                            debug)
+    #                                                 llm_model,
+    #                                                 topic,
+    #                                                 network_structure, 
+    #                                                 regulating,
+    #                                                 connection_prob, 
+    #                                                 VLU_fraction, 
+    #                                                 exploration_prob,
+    #                                                 debug)
 
-    # simulate(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug)
-
-    # print(f"\nSimulation completed! Data saved to data/{output_file}.json")
+    # run_simulation(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug)
 
     print("Analysing network...")
     fused_network_visualisation(output_file, parameters_details)
