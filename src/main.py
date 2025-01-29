@@ -4,9 +4,9 @@ from utils import deadly_cocktail_strength
 from tqdm import tqdm
 from time import sleep
 
-from vis import network_analysis, fused_network_visualisation
+from vis import fused_network_visualisation
 
-def simulate(G, agents, generations, output_file, initial_social_circle, debug=False):
+def simulate(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug=False):
 
     message_logs = {node: [] for node in G.nodes} 
 
@@ -49,7 +49,7 @@ def simulate(G, agents, generations, output_file, initial_social_circle, debug=F
             # Step 2: Read & Upvote All Other Messages
             message_list = list(global_messages.items())  # Convert dict to list of (author_id, message) tuples
             for node in set(agents.keys()):
-                upvoted, removed_agents = agents[node].interact(message_list)  # Interact now returns upvoted + unfollowed
+                upvoted, removed_agents = agents[node].interact(message_list, exploration_prob)  # Interact now returns upvoted + unfollowed
 
                 for message, author_id in upvoted:
                     if author_id in global_messages:  # Ensure the author actually exists in this generation
@@ -94,33 +94,37 @@ def simulate(G, agents, generations, output_file, initial_social_circle, debug=F
 
         file.write("\n]")  
 
-    print(f"\nSimulation completed! Data saved to data/{output_file}.json")
-
-    print("Analysing network...")
-    network_analysis(output_file)
-    fused_network_visualisation(output_file)
-
 
 if __name__ == "__main__":
 
-    num_agents = 15
+    num_agents = 10
     topic = "gun control"
-    network_structure = "fully_connected"
+    network_structure = "small_world"
     regulating = False
     connection_prob = 1
-    VLU_fraction = 0.3
-    exploration_prob = 0.0
-    generations = 5
-    output_file = f"{topic.replace(" ", "_")}_log"
+    VLU_fraction = 0.4
+    exploration_prob = 0.2
+    generations = 3
+    output_file = f"{network_structure}_{topic.replace(" ", "_")}_log"
     debug = True
 
-    G, agents, initial_social_circle = create_network(num_agents, 
-                               topic,
-                               network_structure, 
-                               regulating,
-                               connection_prob, 
-                               VLU_fraction, 
-                               exploration_prob,
-                               debug)
+    parameters_details = (
+        f"Parameters:\nNo. of agents: {num_agents}, Topic: {topic}, VLU Fraction: {VLU_fraction}, Initial Network Structure: {network_structure}, No. of Generations: {generations},"
+        f"Self-regulating (à la Piao et al., 2025): {regulating},"
+    )
 
-    simulate(G, agents, generations, output_file, initial_social_circle, debug)
+    # G, agents, initial_social_circle = create_network(num_agents, 
+    #                            topic,
+    #                            network_structure, 
+    #                            regulating,
+    #                            connection_prob, 
+    #                            VLU_fraction, 
+    #                            exploration_prob,
+    #                            debug)
+
+    # simulate(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug)
+
+    # print(f"\nSimulation completed! Data saved to data/{output_file}.json")
+
+    print("Analysing network...")
+    fused_network_visualisation(output_file, parameters_details)

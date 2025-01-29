@@ -5,10 +5,10 @@ _FuseNet_ is a computational social science experiment that models and analyses 
 
 ## ⚡ Features
 - ✅ Generative AI Agents: Each agent is powered by an LLM and fine-tuned on different corpora (violent vs. non-violent discourse).
-- ✅ Memory & Reflection: Agents remember past interactions and adjust their messaging behavior.
-- ✅ Upvoting & Engagement Mechanism: Agents probabilistically upvote posts based on their reflection module.
-- ✅ Dynamic Network Evolution: Graph visualisation of message interactions over multiple generations.
-- ✅ Interactive & Animated Visualisations: Supports interactive network graphs and frame-by-frame animations of network evolution.
+- ✅ Memory, Reflection, and Regulation Modules: Agents remember past interactions and adjust their messaging behaviour. Self-regulation ensures that agents align their behaviours with their previous history/context (Piao et al., 2025)
+- ✅ Network structure intialisation options (fully_connected, small_world, scale_free, random).
+- ✅ Upvoting & Engagement Mechanism: Based on their reflection module, agents decide to ignore or upvote posts and can control their social circles by deciding to unfollow another agent (and thus not be exposed to their posts in the next generations). There is an exploration probability parameter which controls how likely an agent comes across a post from an agent they don't follow.
+- ✅ Interactive & Animated Visualisations: Supports interactive network graphs and frame-by-frame animations of network evolution. Edges often denote _mutual_ followings (i.e., it cannot visualise those agents who follow another agent that is not following them). Node sizes reflect cumulative upvotes across generations.
 
 
 ## 📂 Project Structure

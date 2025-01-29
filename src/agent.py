@@ -70,7 +70,7 @@ class Agent:
         else:
             context_extension = ""
 
-        context = f"I am about to post on social media about {self.topic}. This is my persona: {self.persona}\n"
+        context = f"I am about to post on social media {"about {self.topic}" if self.topic else ""}. {"This is my persona: {self.persona}" if self.persona else ""}\n"
         context += f"This is my style summary: {self.reflection}\n"
         context += f"My most successful posts were: {self.previous_messages[-3:]}\n"
         context += f"{context_extension}"
@@ -92,59 +92,113 @@ class Agent:
         return new_message
     
 
-    def interact(self, messages):
-        if not messages:
-            return [], set() 
-
-        # Step 1: Filter messages to exclude self-posts and posts from outside the social circle
-        filtered_messages = []
-        original_mappings = {}  
-
-        for author, msg in messages:
-            if author != self.node_id and author in self.social_circle:  
-                original_mappings[len(filtered_messages)] = (author, msg)  # Store actual author
-                filtered_messages.append((author, msg))
-
-        if not filtered_messages:
+    def process_followed_posts(self, followed_messages, followed_mapping):
+        if not followed_messages:
             return [], set()
 
-        # Step 2: Prepare LLM context with filtered messages
-        message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(filtered_messages)])
+        message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(followed_messages)])
 
         context = f"This is my social media style summary:\n{self.reflection}\n"
-        context += "Given the following posts, evaluate each one and return a list of numbers (comma-separated) where:\n"
-        context += "- 0 means ignore the post\n- 1 means upvote the post\n- 2 means unfollow the author\n"
+        context += "Given the following posts from users you follow, decide:\n"
+        context += "- 0: Ignore\n- 1: Upvote\n- 2: Unfollow the author\n"
         context += "Return only a comma-separated list of numbers, no explanation.\n"
         context += f"Posts:\n{message_list}"
 
         llm_response = generate_llm_response(context)
 
-        # Step 3: Extract the LLM response into a list of decisions
+        # Process LLM response
         decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
-        if len(decisions) != len(filtered_messages):
-            raise ValueError(f"LLM returned {len(decisions)} decisions, but there are {len(filtered_messages)} messages.")
 
-        # Step 4: Process decisions
+        if len(decisions) > len(followed_messages):
+            decisions = decisions[:len(followed_messages)]
+        elif len(decisions) < len(followed_messages):
+            decisions.extend([0] * (len(followed_messages) - len(decisions)))  
+
         upvoted_messages = []
         removed_agents = set()
 
         for idx, decision in enumerate(decisions):
-            author_id, message = original_mappings[idx]  
+            author_id, message = followed_mapping[idx]
 
-            if decision == 1:  # ✅ Upvote
+            if decision == 1:  # Upvote
                 upvoted_messages.append((message, author_id))
-            elif decision == 2:  # ✅ Unfollow
+            elif decision == 2:  # Unfollow
                 removed_agents.add(author_id)
-
-        self.upvoted_messages.extend(upvoted_messages)
-
-        if self.debug:
-            print(f"Agent {self.node_id} upvoted: {upvoted_messages}")
-            print(f"Agent {self.node_id} unfollowed: {removed_agents}")
 
         return upvoted_messages, removed_agents
 
 
+    def explore_posts(self, non_followed_messages, non_followed_mapping):
+        if not non_followed_messages:
+            return set(), []  # No non-followed posts available
+
+        # Prepare the LLM prompt
+        message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(non_followed_messages)])
+
+        context = f"This is my social media style summary:\n{self.reflection}\n"
+        context += "You are now seeing posts from users you do not follow. Choose for each post:\n"
+        context += "- 0: Ignore\n- 1: Upvote\n- 2: Follow the author\n- 3: Upvote & Follow\n"
+        context += "Return only a comma-separated list of numbers, no explanation.\n"
+        context += f"Posts:\n{message_list}"
+
+        llm_response = generate_llm_response(context)
+
+        # Process LLM response
+        decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
+
+        if len(decisions) > len(non_followed_messages):
+            decisions = decisions[:len(non_followed_messages)]
+        elif len(decisions) < len(non_followed_messages):
+            decisions.extend([0] * (len(non_followed_messages) - len(decisions)))  # Fill missing decisions with 'ignore'
+
+        new_followed = set()
+        extra_upvoted = []
+
+        for idx, decision in enumerate(decisions):
+            author_id, message = non_followed_mapping[idx]
+
+            if decision == 1:  # Upvote
+                extra_upvoted.append((message, author_id))
+            elif decision == 2:  # Follow
+                new_followed.add(author_id)
+            elif decision == 3:  # Upvote & Follow
+                extra_upvoted.append((message, author_id))
+                new_followed.add(author_id)
+
+        return new_followed, extra_upvoted
+    
+
+    def interact(self, messages, exploration_prob):
+        if not messages:
+            return [], set()  
+
+        # Step 1: Filter messages into followed and non-followed posts
+        followed_messages = []
+        non_followed_messages = []
+        followed_mapping = {}  
+        non_followed_mapping = {}
+
+        for author, msg in messages:
+            if author == self.node_id:
+                continue  # Skip self-posts
+
+            if author in self.social_circle:
+                followed_mapping[len(followed_messages)] = (author, msg)
+                followed_messages.append((author, msg))
+            elif random.uniform(0, 1) < exploration_prob:  # % chance of seeing a non-followed post
+                non_followed_mapping[len(non_followed_messages)] = (author, msg)
+                non_followed_messages.append((author, msg))
+
+        # Step 2: Regular interaction with followed posts
+        upvoted_messages, removed_agents = self.process_followed_posts(followed_messages, followed_mapping)
+
+        # Step 3: Interaction with non-followed posts
+        new_followed, extra_upvoted = self.explore_posts(non_followed_messages, non_followed_mapping)
+
+        # Update the agent's social circle with new follows
+        self.social_circle.update(new_followed)
+
+        return upvoted_messages + extra_upvoted, removed_agents
 
 
 
@@ -233,4 +287,3 @@ class Agent:
             print(f"Agent {self.node_id} upvoted: {upvoted_messages}")
 
         return upvoted_messages
-
