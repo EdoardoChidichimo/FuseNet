@@ -100,8 +100,7 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
 if __name__ == "__main__":
 
     num_agents = 50
-    llm_model = "gpt-3.5-turbo"
-    # llm_model = "llama3.1-70b"
+    llm_model = "gpt-3.5-turbo" # "llama3.1-70b"
     topic = "gun control"
     network_structure = "small_world"
     regulating = False
@@ -113,21 +112,22 @@ if __name__ == "__main__":
     debug = True
 
     parameters_details = (
-        f"Parameters:\nNo. of agents: {num_agents}, Topic: {topic}, VLU Fraction: {VLU_fraction}, Initial Network Structure: {network_structure}, No. of Generations: {generations},"
+        f"Parameters:\nNo. of agents: {num_agents}, No. of Generations: {generations}, Exploration Probability: {exploration_prob}, Initial Network Structure: {network_structure}\n"
+        f"Topic: {topic}, VLU Fraction: {VLU_fraction}, LLM Model: {llm_model}, "
         f"Self-regulating (à la Piao et al., 2025): {regulating}."
     )
 
-    # G, agents, initial_social_circle = create_network(num_agents, 
-    #                                                 llm_model,
-    #                                                 topic,
-    #                                                 network_structure, 
-    #                                                 regulating,
-    #                                                 connection_prob, 
-    #                                                 VLU_fraction, 
-    #                                                 exploration_prob,
-    #                                                 debug)
+    G, agents, initial_social_circle = create_network(num_agents, 
+                                                    llm_model,
+                                                    topic,
+                                                    network_structure, 
+                                                    regulating,
+                                                    connection_prob, 
+                                                    VLU_fraction, 
+                                                    exploration_prob,
+                                                    debug)
 
-    # run_simulation(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug)
+    run_simulation(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug)
 
     print("Analysing network...")
     fused_network_visualisation(output_file, parameters_details)
