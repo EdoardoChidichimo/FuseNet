@@ -2,9 +2,8 @@ import json
 from setup_network import create_network
 from utils import deadly_cocktail_strength
 from tqdm import tqdm
-from time import sleep
 
-from vis import fused_network_visualisation
+from vis import fused_network_interactive, fused_network_gif
 
 def run_simulation(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug=False):
 
@@ -109,6 +108,7 @@ if __name__ == "__main__":
     exploration_prob = 0.2
     generations = 5
     output_file = f"{llm_model.replace(".","_")}_{network_structure}_{topic.replace(" ", "_")}_log"
+
     debug = True
 
     parameters_details = (
@@ -130,4 +130,5 @@ if __name__ == "__main__":
     run_simulation(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug)
 
     print("Analysing network...")
-    fused_network_visualisation(output_file, parameters_details)
+    fused_network_interactive(output_file, parameters_details)
+    fused_network_gif(output_file, parameters_details)

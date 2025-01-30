@@ -1,10 +1,10 @@
 import json
-import numpy as np
 import networkx as nx
+import gravis as gv
+import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import os 
 
 def setup_emojis():    
     """Ensure all emojis are available by replacing newer emojis."""
@@ -15,13 +15,123 @@ def setup_emojis():
     cleaned_emoji_pairs = []
     
     for emoji_pair in raw_emoji_pairs:
-        # Process each emoji pair
         cleaned_pair = emoji_pair.replace("-200D", "").replace("20BF", "1F4B0")
         cleaned_emoji_pairs.append(cleaned_pair)
 
     return cleaned_emoji_pairs
 
-def fused_network_visualisation(output_file: str, parameters_details: str):
+def fused_network_interactive(output_file: str, parameters_details: str):
+    """Generate an HTML visualization of the fused mutual follow network over generations."""
+    setup_emojis()
+
+    with open("data/personas.txt", "r") as f:
+        personas = f.readline().strip().split(", ")  # First line: Personas
+        emoji_pairs = f.readline().strip().split(", ")  # Second line: Unicode emoji codes
+
+    with open(f"data/{output_file}.json", 'r') as f:
+        raw_data = json.load(f)
+
+    data = {k: v for entry in raw_data for k, v in entry.items()}
+    generations = list(data.keys())
+
+    # Create a list to store network states for each generation
+    network_list = []
+    VLU_agents = set()
+    cumulative_upvotes = {int(agent_id): 0 for agent_id in data[generations[0]]}
+
+    # Create graphs with names embedded in their metadata
+    for i, gen in enumerate(generations, 1):
+        G = nx.Graph(name=f"Generation {i}") 
+        agents_data = data[gen]
+        
+        for agent_id, agent_info in agents_data.items():
+            agent_id = int(agent_id)
+            
+            if agent_info.get("role", "") == "VLU":
+                VLU_agents.add(agent_id)
+            
+            cumulative_upvotes[agent_id] += agent_info.get("upvotes_received", 0)
+            
+            if agent_info["persona"] in personas:
+                persona_index = personas.index(agent_info["persona"])
+                emoji_codes = emoji_pairs[persona_index].split("-") 
+                emoji_code_text = " ".join([chr(int(code, 16)) for code in emoji_codes])
+            else:
+                emoji_code_text = "❓" 
+
+            # Add node with attributes
+            G.add_node(
+                agent_id,
+                size=10 + (cumulative_upvotes[agent_id] * 0.5),
+                color="red" if agent_id in VLU_agents else "#87CEEB",
+                hover=(
+                    f"Agent {agent_id}<br>"
+                    f"{emoji_code_text}<br>" 
+                    f"Upvotes: {cumulative_upvotes[agent_id]}<br>"
+                    f"Agent Type: {agent_info.get('role')}<br>"
+                    f"Persona: {agent_info.get('persona')}<br>"
+                    f"Post: {agent_info.get('message')}"
+                ),
+                id=str(agent_id)
+            )
+
+        # Process edges (mutual follows)
+        social_circles = {int(agent_id): set(map(int, agent_info.get("social_circle", []))) 
+                        for agent_id, agent_info in agents_data.items()}
+        
+        for agent_id, follows in social_circles.items():
+            for followed_agent in follows:
+                if followed_agent in social_circles and agent_id in social_circles[followed_agent]:
+                    G.add_edge(agent_id, followed_agent)
+
+        network_list.append(G)
+
+    print(network_list)
+    for i, graph in enumerate(network_list, 1):
+        graph.graph["label"] = f"Generation {i}"  # Keep generation labels
+
+        # Iterate through nodes and assign emoji labels
+        for node in graph.nodes:
+            agent_info = data[generations[i-1]].get(str(node), {})  # Retrieve agent data
+            persona = agent_info.get("persona", "")
+            
+            if persona in personas:
+                persona_index = personas.index(persona)
+                emoji_label = emoji_pairs[persona_index]  
+            else:
+                emoji_label = "❓"
+
+            graph.nodes[node]["label"] = emoji_label
+
+    fig = gv.d3(
+        network_list,
+        graph_height=800,
+        node_size_data_source='size',
+        node_hover_tooltip=True,
+        node_hover_neighborhood=True,
+        node_drag_fix=True,
+        show_node_label=True,
+        node_label_data_source='id',
+        node_label_size_factor=1.2,
+        edge_size_factor=0.5,
+        zoom_factor=0.75,
+        layout_algorithm_active=True,
+        use_many_body_force=True,
+        many_body_force_strength=-100.0,
+        use_links_force=True,
+        links_force_distance=100,
+        use_collision_force=True,
+        collision_force_radius=30,
+        use_centering_force=True,
+        show_menu=True,
+        show_menu_toggle_button=True
+    )
+    
+    fig.export_html(f"results/{output_file}_fused_network.html", overwrite=True)
+    print(f"Visualization saved as results/{output_file}_fused_network.html")
+
+
+def fused_network_gif(output_file: str, parameters_details: str):
     """Generate a GIF animation of the fused mutual follow network over generations."""
 
     setup_emojis()
