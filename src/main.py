@@ -99,9 +99,9 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
 if __name__ == "__main__":
 
     num_agents = 25
-    llm_model = "gpt-3.5-turbo" # "llama3.1-70b"
+    llm_model = "gpt-3.5-turbo" # "llama3.1-70b", "gpt-4o"
     topic = "abortion ban"
-    network_structure = "small_world"
+    network_structure = "fully_connected"
     regulating = False
     connection_prob = 1
     k_neighbour = 10
