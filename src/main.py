@@ -46,18 +46,18 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
                 print(f"\nGeneration {generation + 1} Messages Complete.")
 
             # Step 2: Read & Upvote All Other Messages
-            message_list = list(global_messages.items())  # Convert dict to list of (author_id, message) tuples
+            message_list = list(global_messages.items())  
             for node in set(agents.keys()):
                 upvoted, removed_agents = agents[node].interact(message_list, exploration_prob)  # Interact now returns upvoted + unfollowed
 
                 for message, author_id in upvoted:
-                    if author_id in global_messages:  # Ensure the author actually exists in this generation
+                    if author_id in global_messages: 
                         message_upvotes[message] += 1
-                        agents[node].current_upvotes.append((message, author_id))  # Store upvote this gen
+                        agents[node].current_upvotes.append((message, author_id))  
 
                 for removed_agent in removed_agents:
-                    if removed_agent in agents[node].social_circle:  # Ensure valid social circle update
-                        agents[node].social_circle.remove(removed_agent)  # Unfollow the agent
+                    if removed_agent in agents[node].social_circle: 
+                        agents[node].social_circle.remove(removed_agent)  
 
                 progress_bar.update(1)
 
@@ -91,25 +91,26 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
 
             progress_bar.close()
 
-        file.write("\n]")  
+        file.write("\n]")
 
     print(f"\nSimulation completed! Data saved to data/{output_file}.json")
 
 
 if __name__ == "__main__":
 
-    num_agents = 50
+    num_agents = 25
     llm_model = "gpt-3.5-turbo" # "llama3.1-70b"
-    topic = "gun control"
+    topic = "abortion ban"
     network_structure = "small_world"
     regulating = False
     connection_prob = 1
+    k_neighbour = 10
+    rewiring_prob = 0.001
     VLU_fraction = 0.4
     exploration_prob = 0.2
-    generations = 5
+    generations = 25
     output_file = f"{llm_model.replace(".","_")}_{network_structure}_{topic.replace(" ", "_")}_log"
-
-    debug = True
+    debug = False
 
     parameters_details = (
         f"Parameters:\nNo. of agents: {num_agents}, No. of Generations: {generations}, Exploration Probability: {exploration_prob}, Initial Network Structure: {network_structure}\n"
@@ -122,7 +123,9 @@ if __name__ == "__main__":
                                                     topic,
                                                     network_structure, 
                                                     regulating,
-                                                    connection_prob, 
+                                                    connection_prob,
+                                                    k_neighbour, 
+                                                    rewiring_prob,
                                                     VLU_fraction, 
                                                     exploration_prob,
                                                     debug)

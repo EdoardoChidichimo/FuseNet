@@ -24,7 +24,7 @@ def generate_llm_response(context, llm_model):
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model=llm_model,
-            messages=[{"role": "system", "content": "Generate a message relevant to the given context."},
+            messages=[{"role": "system", "content": f"You are a social media user."},
                       {"role": "user", "content": context}]
         )
         return response.choices[0].message.content

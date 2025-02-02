@@ -4,15 +4,14 @@ import random
 from agent import Agent
 from utils import generate_llm_response
 
-def create_network(num_agents, llm_model, topic, network_structure, regulating=False, connection_prob=1, VLU_fraction=0.1, exploration_prob=0.2, debug=False):
+def create_network(num_agents, llm_model, topic, network_structure, regulating=False, connection_prob = 1, k_neighbour = 5, rewiring_prob = 0.001, VLU_fraction=0.1, exploration_prob=0.2, debug=False):
     
     if network_structure == "random":
         G = nx.erdos_renyi_graph(num_agents, connection_prob, seed=42)
     elif network_structure == "small_world":
-        rewiring_prob = 0.001
-        G = nx.watts_strogatz_graph(num_agents, 5, rewiring_prob, seed=42)
+        G = nx.watts_strogatz_graph(num_agents, k_neighbour, rewiring_prob, seed=42)
     elif network_structure == "scale_free":
-        G = nx.barabasi_albert_graph(num_agents, 5, seed=42) 
+        G = nx.barabasi_albert_graph(num_agents, k_neighbour, seed=42) 
     elif network_structure == "fully_connected":
         G = nx.complete_graph(num_agents)
 

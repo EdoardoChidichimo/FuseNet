@@ -13,13 +13,12 @@ class Agent:
         self.exploration_prob = exploration_prob # Probability of engaging/upvoting any new post
         self.debug = debug
 
-
         self.previous_messages = [] # Stores (message, upvotes received)
         self.upvoted_messages = []
         self.reflection = ""
 
 
-    def reflect(self):
+    def reflect(self) -> None:
         if not self.previous_messages:
             return
         
@@ -30,7 +29,8 @@ class Agent:
         context = f"My most upvoted posts:\n{high_engagement_topics}\n"
         context += f"Recent posts I upvoted:\n{self.upvoted_messages[-5:]}\n"
         context += f"Summarise my posting style, common topics, and engagement in 2 concise sentences."
-        context += f"State that I am {'not' if not self.role == 'VLU' else ''} a violent language user."
+        if self.role == "VLU":
+            context += f"State that I am a violent language user."
 
         self.reflection = generate_llm_response(context, self.llm_model)
 
@@ -38,8 +38,8 @@ class Agent:
             print("Reflection: ", self.reflection)
 
     
-    def regulate(self, self_context, action):
-        ## Check to see if the action align with the context, if not return False (previous function will be repeated until this is True)
+    def regulate(self, self_context, action) -> bool:
+        ## Check to see if the action aligns with the context, if not return False (previous function will be repeated until this is True)
         if not self.previous_messages:
             return
         
@@ -54,7 +54,7 @@ class Agent:
 
         return False
 
-    def create_message(self):
+    def create_message(self) -> str:
         self.reflect()
 
         if self.role == "VLU":
@@ -94,19 +94,26 @@ class Agent:
         return new_message
     
 
-    def process_followed_posts(self, followed_messages, followed_mapping):
+    def process_followed_posts(self, followed_messages, followed_mapping) -> tuple[list, set]:
         if not followed_messages:
             return [], set()
 
         message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(followed_messages)])
 
-        context = f"My social media style summary:\n{self.reflection}\n"
-        context += "Given the following posts from users you follow, decide:\n"
-        context += "- 0: Ignore\n- 1: Upvote\n- 2: Unfollow the author\n"
-        context += "Return only a comma-separated list of numbers, no explanation.\n"
-        context += f"Posts:\n{message_list}"
+        # context = f"My social media style summary:\n{self.reflection}\n"
+        # context += "Given the following posts from users you follow, decide:\n"
+        # context += "- 0: Ignore\n- 1: Upvote\n- 2: Unfollow the author\n"
+        # context += "Return only a comma-separated list of numbers, no explanation.\n"
+        # context += f"Posts:\n{message_list}"
 
-        llm_response = generate_llm_response(context, self.llm_model)
+        context = f"My social media style:\n{self.reflection}\n"
+        context += "Decide for each post:\n"
+        context += "- 0: Ignore\n- 1: Upvote\n- 2: Unfollow (only if the post is entirely irrelevant to my interests)\n"
+        context += "Consider:\n- Familiarity (Does it align with my usual content?)\n- Interest (Is it relevant to my discussions?)\n- Network value (Would seeing more posts like this benefit me?)\n"
+        context += "Return only a comma-separated list of numbers, no explanation.\n"
+        context += f"Posts:\n{message_list}"    
+
+        llm_response = generate_llm_response(context, self.llm_model )
 
         # Process LLM response
         decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
@@ -130,11 +137,10 @@ class Agent:
         return upvoted_messages, removed_agents
 
 
-    def explore_posts(self, non_followed_messages, non_followed_mapping):
+    def explore_posts(self, non_followed_messages, non_followed_mapping) -> tuple[set, list]:
         if not non_followed_messages:
-            return set(), []  # No non-followed posts available
+            return set(), []  
 
-        # Prepare the LLM prompt
         message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(non_followed_messages)])
 
         context = f"My social media style summary:\n{self.reflection}\n"
@@ -144,8 +150,6 @@ class Agent:
         context += f"Posts:\n{message_list}"
 
         llm_response = generate_llm_response(context, self.llm_model)
-
-        # Process LLM response
         decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
 
         if len(decisions) > len(non_followed_messages):

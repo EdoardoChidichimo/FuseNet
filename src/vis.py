@@ -21,7 +21,7 @@ def setup_emojis():
     return cleaned_emoji_pairs
 
 def fused_network_interactive(output_file: str, parameters_details: str):
-    """Generate an HTML visualization of the fused mutual follow network over generations."""
+    """Generate an HTML visualisation of the fused mutual follow network over generations."""
     setup_emojis()
 
     with open("data/personas.txt", "r") as f:
@@ -34,13 +34,11 @@ def fused_network_interactive(output_file: str, parameters_details: str):
     data = {k: v for entry in raw_data for k, v in entry.items()}
     generations = list(data.keys())
 
-    # Create a list to store network states for each generation
     network_list = []
     VLU_agents = set()
     cumulative_upvotes = {int(agent_id): 0 for agent_id in data[generations[0]]}
 
-    # Create graphs with names embedded in their metadata
-    for i, gen in enumerate(generations, 1):
+    for i, gen in enumerate(generations):
         G = nx.Graph(name=f"Generation {i}") 
         agents_data = data[gen]
         
@@ -55,7 +53,7 @@ def fused_network_interactive(output_file: str, parameters_details: str):
             if agent_info["persona"] in personas:
                 persona_index = personas.index(agent_info["persona"])
                 emoji_codes = emoji_pairs[persona_index].split("-") 
-                emoji_code_text = " ".join([chr(int(code, 16)) for code in emoji_codes])
+                emoji_code_text = "".join([chr(int(code, 16)) for code in emoji_codes])
             else:
                 emoji_code_text = "❓" 
 
@@ -66,11 +64,10 @@ def fused_network_interactive(output_file: str, parameters_details: str):
                 color="red" if agent_id in VLU_agents else "#87CEEB",
                 hover=(
                     f"Agent {agent_id}<br>"
-                    f"{emoji_code_text}<br>" 
-                    f"Upvotes: {cumulative_upvotes[agent_id]}<br>"
+                    f"Persona: {agent_info.get('persona')} {emoji_code_text}<br>" 
                     f"Agent Type: {agent_info.get('role')}<br>"
-                    f"Persona: {agent_info.get('persona')}<br>"
-                    f"Post: {agent_info.get('message')}"
+                    f"Post: {agent_info.get('message')}<br>"
+                    f"Upvotes: {cumulative_upvotes[agent_id]}<br>"
                 ),
                 id=str(agent_id)
             )
@@ -87,6 +84,7 @@ def fused_network_interactive(output_file: str, parameters_details: str):
         network_list.append(G)
 
     print(network_list)
+    
     for i, graph in enumerate(network_list, 1):
         graph.graph["label"] = f"Generation {i}"  # Keep generation labels
 
