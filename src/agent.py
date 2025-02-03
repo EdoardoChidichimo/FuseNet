@@ -2,7 +2,7 @@ import random
 from utils import generate_llm_response
 
 class Agent:
-    def __init__(self, node_id: int, llm_model: str, topic: str, role: str, persona: str, regulating: bool, social_circle: set, exploration_prob: float, debug: bool):
+    def __init__(self, node_id: int, llm_model: str, topic: str, role: str, persona: str, regulating: bool, social_circle: set, exploration_prob: float, provides_explanation: bool, debug: bool):
         self.node_id = node_id
         self.llm_model = llm_model
         self.topic = topic
@@ -11,6 +11,7 @@ class Agent:
         self.regulating = regulating
         self.social_circle = social_circle
         self.exploration_prob = exploration_prob # Probability of engaging/upvoting any new post
+        self.provides_explanation = provides_explanation
         self.debug = debug
 
         self.previous_messages = [] # Stores (message, upvotes received)
@@ -94,29 +95,45 @@ class Agent:
         return new_message
     
 
-    def process_followed_posts(self, followed_messages, followed_mapping) -> tuple[list, set]:
+    def process_followed_posts(self, followed_messages, followed_mapping) -> tuple[list, set, dict]:
         if not followed_messages:
-            return [], set()
-
+            return [], set(), {}
+        
+        
         message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(followed_messages)])
-
-        # context = f"My social media style summary:\n{self.reflection}\n"
-        # context += "Given the following posts from users you follow, decide:\n"
-        # context += "- 0: Ignore\n- 1: Upvote\n- 2: Unfollow the author\n"
-        # context += "Return only a comma-separated list of numbers, no explanation.\n"
-        # context += f"Posts:\n{message_list}"
+        explanations = {}
 
         context = f"My social media style:\n{self.reflection}\n"
         context += "Decide for each post:\n"
         context += "- 0: Ignore\n- 1: Upvote\n- 2: Unfollow (only if the post is entirely irrelevant to my interests)\n"
         context += "Consider:\n- Familiarity (Does it align with my usual content?)\n- Interest (Is it relevant to my discussions?)\n- Network value (Would seeing more posts like this benefit me?)\n"
-        context += "Return only a comma-separated list of numbers, no explanation.\n"
+        if self.provides_explanation:
+            context += "Return responses in the following format:\n"
+            context += "DECISIONS:\n0,1,2,0,1\n"
+            context += "EXPLANATIONS:\n1: Explanation for why I upvoted this post.\n2: Explanation for why I unfollowed this post.\n" if self.provides_explanation else ""
+        else:
+            context += "Return only a comma-separated list of numbers, no explanation.\n"
+
+
         context += f"Posts:\n{message_list}"    
 
-        llm_response = generate_llm_response(context, self.llm_model )
+        llm_response = generate_llm_response(context, self.llm_model)
 
-        # Process LLM response
-        decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
+        if not self.provides_explanation:
+            decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
+        else:
+            decisions_part, explanations_part = llm_response.split("EXPLANATIONS:", 1)
+            decisions = [int(choice.strip()) for choice in decisions_part.replace("DECISIONS:", "").strip().split(",") if choice.strip().isdigit()]
+
+            for line in explanations_part.strip().split("\n"):
+                if ":" in line:
+                    post_idx, explanation = line.split(":", 1)
+                    try:
+                        post_idx = int(post_idx.strip())
+                        explanations[followed_mapping[post_idx][1]] = explanation.strip()
+                    except (ValueError, KeyError):
+                        continue
+
 
         if len(decisions) > len(followed_messages):
             decisions = decisions[:len(followed_messages)]
@@ -134,23 +151,44 @@ class Agent:
             elif decision == 2:  # Unfollow
                 removed_agents.add(author_id)
 
-        return upvoted_messages, removed_agents
+        return upvoted_messages, removed_agents, explanations
 
 
-    def explore_posts(self, non_followed_messages, non_followed_mapping) -> tuple[set, list]:
+    def explore_posts(self, non_followed_messages, non_followed_mapping) -> tuple[set, list, dict]:
         if not non_followed_messages:
-            return set(), []  
+            return set(), [], {}
 
         message_list = "\n".join([f"{idx}: {msg}" for idx, (author, msg) in enumerate(non_followed_messages)])
+        explanations = {}
 
         context = f"My social media style summary:\n{self.reflection}\n"
         context += "These are posts from users you do not follow. Choose for each post:\n"
         context += "- 0: Ignore\n- 1: Upvote\n- 2: Follow the author\n- 3: Upvote & Follow\n"
-        context += "Return only a comma-separated list of numbers, no explanation.\n"
+        if self.provides_explanation:
+            context += "Return responses in the following format:\n"
+            context += "DECISIONS:\n0,1,2,3,1\n"
+            context += "EXPLANATIONS:\n1: Explanation for why I upvoted this post.\n2: Explanation for why I followed this author.\n"
+        else:
+            context += "Return only a comma-separated list of numbers, no explanation.\n"
         context += f"Posts:\n{message_list}"
 
         llm_response = generate_llm_response(context, self.llm_model)
-        decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
+        
+        if self.provides_explanation:
+            decisions_part, explanations_part = llm_response.split("EXPLANATIONS:", 1)
+            decisions = [int(choice.strip()) for choice in decisions_part.replace("DECISIONS:", "").strip().split(",") if choice.strip().isdigit()]
+
+            for line in explanations_part.strip().split("\n"):
+                if ":" in line:
+                    post_idx, explanation = line.split(":", 1)
+                    try:
+                        post_idx = int(post_idx.strip())
+                        explanations[non_followed_mapping[post_idx][1]] = explanation.strip()
+                    except (ValueError, KeyError):
+                        continue
+
+        else:
+            decisions = [int(choice.strip()) for choice in llm_response.split(",") if choice.strip().isdigit()]
 
         if len(decisions) > len(non_followed_messages):
             decisions = decisions[:len(non_followed_messages)]
@@ -171,7 +209,7 @@ class Agent:
                 extra_upvoted.append((message, author_id))
                 new_followed.add(author_id)
 
-        return new_followed, extra_upvoted
+        return new_followed, extra_upvoted, explanations
     
 
     def interact(self, messages, exploration_prob):
@@ -196,12 +234,14 @@ class Agent:
                 non_followed_messages.append((author, msg))
 
         # Step 2: Regular interaction with followed posts
-        upvoted_messages, removed_agents = self.process_followed_posts(followed_messages, followed_mapping)
+        upvoted_messages, removed_agents, followed_explanations = self.process_followed_posts(followed_messages, followed_mapping)
 
         # Step 3: Interaction with non-followed posts
-        new_followed, extra_upvoted = self.explore_posts(non_followed_messages, non_followed_mapping)
+        new_followed, extra_upvoted, nonfollowed_explanations = self.explore_posts(non_followed_messages, non_followed_mapping)
 
         # Update the agent's social circle with new follows
         self.social_circle.update(new_followed)
+        
+        all_explanations = {**followed_explanations, **nonfollowed_explanations}
 
-        return upvoted_messages + extra_upvoted, removed_agents
+        return upvoted_messages + extra_upvoted, removed_agents, all_explanations

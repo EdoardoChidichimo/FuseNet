@@ -4,7 +4,7 @@ import random
 from agent import Agent
 from utils import generate_llm_response
 
-def create_network(num_agents, llm_model, topic, network_structure, regulating=False, connection_prob = 1, k_neighbour = 5, rewiring_prob = 0.001, VLU_fraction=0.1, exploration_prob=0.2, debug=False):
+def create_network(num_agents, llm_model, topic, network_structure, regulating=False, connection_prob = 1, k_neighbour = 5, rewiring_prob = 0.001, VLU_fraction=0.1, exploration_prob=0.2, provides_explanation = False, debug=False):
     
     if network_structure == "random":
         G = nx.erdos_renyi_graph(num_agents, connection_prob, seed=42)
@@ -30,7 +30,7 @@ def create_network(num_agents, llm_model, topic, network_structure, regulating=F
     for node in G.nodes:
         role = "VLU" if node in VLU_agents else "non-VLU"
         social_circle = set(G.neighbors(node))
-        agents[node] = Agent(node, llm_model, topic, role, personas[node], regulating, social_circle, exploration_prob, debug)
+        agents[node] = Agent(node, llm_model, topic, role, personas[node], regulating, social_circle, exploration_prob, provides_explanation, debug)
         initial_social_circle[node] = list(social_circle)
 
     return G, agents, initial_social_circle

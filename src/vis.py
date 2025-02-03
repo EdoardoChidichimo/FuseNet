@@ -20,7 +20,7 @@ def setup_emojis():
 
     return cleaned_emoji_pairs
 
-def fused_network_interactive(output_file: str, parameters_details: str):
+def fused_network_interactive(output_file: str):
     """Generate an HTML visualisation of the fused mutual follow network over generations."""
     setup_emojis()
 
@@ -248,3 +248,9 @@ def fused_network_gif(output_file: str, parameters_details: str):
 
     ani.save(f"results/{output_file}_fused_network.gif", writer="pillow", fps=1)
     print(f"Animation saved as results/{output_file}_fused_network.gif")
+
+
+
+if __name__ == "__main__":
+    fused_network_interactive("explanation_gpt-3_5-turbo_fully_connected_abortion_ban_log")
+    fused_network_gif("explanation_gpt-3_5-turbo_fully_connected_abortion_ban_log", "Parameters:\nNo. of agents: 6, No. of Generations: 3, Exploration Probability: 0.2, Initial Network Structure: fully_connected\nTopic: abortion ban, VLU Fraction: 0.8, LLM Model: gpt-3.5-turbo, Self-regulating (à la Piao et al., 2025): False.")

@@ -18,6 +18,8 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
         file.write(",\n")
 
         for generation in range(generations):
+            generation_data = {}
+
             global_messages = {}  # Store {agent_id: message}
             message_upvotes = {}  # Track upvotes for each message
             message_cocktail_scores = {}  # Track strength of deadly cocktail scores for each message
@@ -27,7 +29,8 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
             # Reset upvotes for each agent
             for node in agents:
                 agents[node].current_upvotes = []
-            progress_bar.update(len(agents))  # Track reset step completion
+            progress_bar.update(len(agents)) 
+
 
             # Step 1: Message Generation
             for node in set(agents.keys()):
@@ -45,10 +48,11 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
             if debug:
                 print(f"\nGeneration {generation + 1} Messages Complete.")
 
+
             # Step 2: Read & Upvote All Other Messages
             message_list = list(global_messages.items())  
             for node in set(agents.keys()):
-                upvoted, removed_agents = agents[node].interact(message_list, exploration_prob)  # Interact now returns upvoted + unfollowed
+                upvoted, removed_agents, explanations = agents[node].interact(message_list, exploration_prob)  # Interact now returns upvoted + unfollowed
 
                 for message, author_id in upvoted:
                     if author_id in global_messages: 
@@ -57,7 +61,24 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
 
                 for removed_agent in removed_agents:
                     if removed_agent in agents[node].social_circle: 
-                        agents[node].social_circle.remove(removed_agent)  
+                        agents[node].social_circle.remove(removed_agent)
+
+                if node not in generation_data:
+                    generation_data[node] = {
+                        "role": agents[node].role,
+                        "persona": agents[node].persona,
+                        "message": "",
+                        "upvotes_received": 0,
+                        "deadly_cocktail_score": 0,
+                        "upvoted_messages": [],
+                        "reflection": "",
+                        "social_circle": [],
+                        "explanations": {}  
+                    }
+
+                if agents[node].provides_explanation:
+                    for message, explanation in explanations.items():
+                        generation_data[node]["explanations"][message] = explanation  
 
                 progress_bar.update(1)
 
@@ -65,13 +86,16 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
                 print(f"\nGeneration {generation + 1} Interactions Complete.")
 
             # Step 3: Update Memory with Final Upvote Counts
-            generation_data = {}
             for sender, message in global_messages.items():
                 upvotes = message_upvotes[message]
                 violence_score = message_cocktail_scores[message]
         
                 agents[sender].previous_messages[-1] = (message, upvotes)  # Update message with final upvotes
-                generation_data[sender] = {
+                
+                if sender not in generation_data:
+                    generation_data[sender] = {}
+
+                generation_data[sender].update({
                     "role": agents[sender].role,
                     "persona": agents[sender].persona,
                     "message": message,
@@ -80,7 +104,7 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
                     "upvoted_messages": agents[sender].current_upvotes,
                     "reflection": agents[sender].reflection,
                     "social_circle": list(agents[sender].social_circle)
-                }
+                })
 
             if debug:
                 print(f"\nGeneration {generation + 1} Data Complete.")
@@ -98,18 +122,19 @@ def run_simulation(G, agents, generations, output_file, initial_social_circle, e
 
 if __name__ == "__main__":
 
-    num_agents = 25
+    num_agents = 3
     llm_model = "gpt-3.5-turbo" # "llama3.1-70b", "gpt-4o"
     topic = "abortion ban"
     network_structure = "fully_connected"
     regulating = False
     connection_prob = 1
     k_neighbour = 10
-    rewiring_prob = 0.001
-    VLU_fraction = 0.4
+    rewiring_prob = 0
+    VLU_fraction = 0.8
     exploration_prob = 0.2
-    generations = 25
-    output_file = f"{llm_model.replace(".","_")}_{network_structure}_{topic.replace(" ", "_")}_log"
+    generations = 2
+    output_file = f"test_explanation_{llm_model.replace(".","_")}_{network_structure}_{topic.replace(" ", "_")}_log"
+    provides_explanation = False
     debug = False
 
     parameters_details = (
@@ -128,10 +153,11 @@ if __name__ == "__main__":
                                                     rewiring_prob,
                                                     VLU_fraction, 
                                                     exploration_prob,
+                                                    provides_explanation,
                                                     debug)
 
     run_simulation(G, agents, generations, output_file, initial_social_circle, exploration_prob, debug)
 
     print("Analysing network...")
-    fused_network_interactive(output_file, parameters_details)
+    fused_network_interactive(output_file)
     fused_network_gif(output_file, parameters_details)
