@@ -1,10 +1,8 @@
-llmabm/
 src/__pycache__/
 __pycache__/
-.DS_Store
 next_steps.txt
-.gitignore
 data/emojis
 results/*
 data/*
 !data/personas.txt
+!data/.gitkeep
