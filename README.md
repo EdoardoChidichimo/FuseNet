@@ -12,10 +12,11 @@ _FuseNet_ is a computational social science experiment that models and analyses 
     - Network structure (fully_connected, small_world, scale_free, random), 
     - Topic (any string), 
     - Condition random persona, 
-    - Self-regulation (boolean), 
+    - Self-regulation (boolean),
+    - Decision-making explanations (boolean)
     - VLU proportion, and 
     - Exploration probability
-- ✅ Memory, Reflection, and Regulation Modules: Agents remember past interactions and adjust their messaging behaviour. Self-regulation ensures that agents align their behaviours with their previous history/context (Piao et al., 2025)
+- ✅ Memory, Reflection, and Regulation Modules: Agents remember past interactions and adjust their messaging behaviour. Self-regulation ensures that agents align their behaviours with their previous history/context (Piao et al., 2025). Agents can also provide explanations for their decisions.
 - ✅ Upvoting & Engagement Mechanism: Based on their reflection module, agents decide to ignore or upvote posts and can control their social circles by deciding to unfollow another agent (and thus not be exposed to their posts in the next generations). There is an exploration probability parameter which controls how likely an agent comes across a post from an agent they don't follow.
 - ✅ Interactive & Animated Visualisations: Supports interactive network graphs and frame-by-frame animations of network evolution. Edges often denote _mutual_ followings (i.e., it cannot visualise those agents who follow another agent that is not following them). Node sizes reflect cumulative upvotes across generations.
 
@@ -25,16 +26,21 @@ _FuseNet_ is a computational social science experiment that models and analyses 
 ```md
 📂 FuseNet/
 │── 📂 data/
-│   ├── VLU_agent_logs.json       # Stores all agent messages, upvotes, and reflections for analysis
+│   ├── agent_logs.json           # Stores all agent roles, personas, posts, upvotes, upvoted posts, reflections, social circle, and explanations
+│   ├── personas.txt              # A list of 100 different personas (first line: short alias; second line: respective emoji codes)
 │── 📂 results/
-│   ├── VLU_upvote_evolution.mp4  # Animated visualisation of message spread
+│   ├── vis_interactive.html      # Interactive visualisation of post spread
+│   ├── vis_animation.gif         # Animated visualisation of network evolution
 │── 📂 src/
-│   ├── main.py                   # Runs the simulation
 │   ├── agent.py                  # Agent object defined (memory and reflection modules)
-│   ├── simulation.py             # Generates the simulation network
+│   ├── interaction.py            # Interaction handler
+│   ├── main.py                   # Generates the simulation network and runs simulation
+│   ├── post_generation.py        # Generates agents' posts
+│   ├── reflection.py             # Agent reflects on its own history
+│   ├── regulation.py             # Checking decisions align with context provided
 │   ├── utils.py                  # Utility functions (generating LLM responses)
-│   ├── analysis.py               # Creates a frame-by-frame animation of the network evolution
+│   ├── vis.py                    # Creates a frame-by-frame animation of the network evolution
 │── requirements.txt              # Dependencies needed to run the project
 │── README.md                     # Project documentation
 
-Need to set API KEYS and directory of emoji font path for effective visualisations
+REMEMBER: Need to set API KEYS 
