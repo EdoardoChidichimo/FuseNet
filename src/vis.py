@@ -66,16 +66,30 @@ def fused_network_interactive(output_file: str):
                     f"Agent {agent_id}<br>"
                     f"Persona: {agent_info.get('persona')} {emoji_code_text}<br>" 
                     f"Agent Type: {agent_info.get('role')}<br>"
-                    f"Post: {agent_info.get('message')}<br>"
+                    f"Post: {agent_info.get('post')}<br>"
                     f"Upvotes: {cumulative_upvotes[agent_id]}<br>"
                 ),
                 id=str(agent_id)
             )
 
         # Process edges (mutual follows)
-        social_circles = {int(agent_id): set(map(int, agent_info.get("social_circle", []))) 
-                        for agent_id, agent_info in agents_data.items()}
-        
+        def flatten_and_convert(social_circle):
+            """Flattens nested lists and converts valid numeric elements to integers."""
+            flat_list = []
+            
+            for item in social_circle:
+                if isinstance(item, list):  # If there's a nested list, extend it
+                    for sub_item in item:
+                        if isinstance(sub_item, (int, str)) and str(sub_item).isdigit():
+                            flat_list.append(int(sub_item))
+                elif isinstance(item, (int, str)) and str(item).isdigit():  # Ensure it's a valid integer
+                    flat_list.append(int(item))  # Convert only valid numbers
+
+            return set(flat_list)  # Convert to a set of integers
+
+        # Apply fix in `fused_network_gif()`
+        social_circles = {int(agent_id): flatten_and_convert(agent_info.get("social_circle", [])) for agent_id, agent_info in agents_data.items()}
+
         for agent_id, follows in social_circles.items():
             for followed_agent in follows:
                 if followed_agent in social_circles and agent_id in social_circles[followed_agent]:
@@ -126,7 +140,7 @@ def fused_network_interactive(output_file: str):
     )
     
     fig.export_html(f"results/{output_file}_fused_network.html", overwrite=True)
-    print(f"Visualization saved as results/{output_file}_fused_network.html")
+    print(f"Visualisation saved as results/{output_file}_fused_network.html")
 
 
 def fused_network_gif(output_file: str, parameters_details: str):
@@ -250,7 +264,6 @@ def fused_network_gif(output_file: str, parameters_details: str):
     print(f"Animation saved as results/{output_file}_fused_network.gif")
 
 
-
 if __name__ == "__main__":
-    fused_network_interactive("explanation_gpt-3_5-turbo_fully_connected_abortion_ban_log")
-    fused_network_gif("explanation_gpt-3_5-turbo_fully_connected_abortion_ban_log", "Parameters:\nNo. of agents: 6, No. of Generations: 3, Exploration Probability: 0.2, Initial Network Structure: fully_connected\nTopic: abortion ban, VLU Fraction: 0.8, LLM Model: gpt-3.5-turbo, Self-regulating (à la Piao et al., 2025): False.")
+    fused_network_interactive("test_explanation_gpt-3_5-turbo_fully_connected_abortion_ban_log")
+    fused_network_gif("test_explanation_gpt-3_5-turbo_fully_connected_abortion_ban_log", "Parameters: No. of agents: 5, No. of Generations: 3, Exploration Probability: 0.2, Initial Network Structure: fully_connected\nTopic: abortion ban, VLU Fraction: 0.8, LLM Model: gpt-3.5-turbo, Self-regulating (à la Piao et al., 2025): False.")

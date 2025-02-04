@@ -65,16 +65,16 @@ def generate_llm_response(context, llm_model):
         return output[0]["generated_text"]
 
     else:
-        raise ValueError(f"Model '{llm_model}' not recognized. Please specify a supported model.")
+        raise ValueError(f"Model '{llm_model}' not recognised. Please specify a supported model.")
 
 
 
-def deadly_cocktail_strength(message):
+def deadly_cocktail_strength(post):
 
     nlp = spacy.load("en_core_web_md")
 
-    # violence_score = violent(message, nlp)
-    # kinship_score = kinship(message, nlp)
+    # violence_score = violent(post, nlp)
+    # kinship_score = kinship(post, nlp)
 
     # return kinship_score
 

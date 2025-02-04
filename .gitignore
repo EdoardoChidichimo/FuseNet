@@ -5,3 +5,6 @@ __pycache__/
 next_steps.txt
 .gitignore
 data/emojis
+results/*
+data/*
+!data/personas.txt
