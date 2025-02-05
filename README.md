@@ -26,18 +26,23 @@ _FuseNet_ is a computational social science experiment that models and analyses 
 ```md
 📂 FuseNet/
 │── 📂 data/
-│   ├── agent_logs.json           # Stores all agent roles, personas, posts, upvotes, upvoted posts, reflections, social circle, and explanations
-│   ├── personas.txt              # A list of 100 different personas (first line: short alias; second line: respective emoji codes)
+│   ├── agent_logs.json           # Stores all agent details
+│   ├── personas.txt              # List of 100 personas (short aliases and emoji codes)
 │── 📂 results/
 │   ├── vis_interactive.html      # Interactive visualisation of post spread
 │   ├── vis_animation.gif         # Animated visualisation of network evolution
 │── 📂 src/
 │   ├── agent.py                  # Agent object defined (memory and reflection modules)
+│   ├── analysis.py               # Runs analysis and generates network visualisations
+│   ├── app.py                    # Streamlit web interface for running simulations
 │   ├── interaction.py            # Interaction handler
 │   ├── main.py                   # Generates the simulation network and runs simulation
+│   ├── network.py                # Defines network creation logic (random, small-world, scale-free, etc.)
 │   ├── post_generation.py        # Generates agents' posts
+│   ├── processing.py             # Handles interactions, upvotes, and unfollows in simulation
 │   ├── reflection.py             # Agent reflects on its own history
 │   ├── regulation.py             # Checking decisions align with context provided
+│   ├── simulation.py             # Orchestrates the multi-generation simulation process
 │   ├── utils.py                  # Utility functions (generating LLM responses)
 │   ├── vis.py                    # Creates a frame-by-frame animation of the network evolution
 │── requirements.txt              # Dependencies needed to run the project
