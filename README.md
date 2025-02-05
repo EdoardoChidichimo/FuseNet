@@ -43,4 +43,26 @@ _FuseNet_ is a computational social science experiment that models and analyses 
 │── requirements.txt              # Dependencies needed to run the project
 │── README.md                     # Project documentation
 
-REMEMBER: Need to set API KEYS 
+
+
+## 🚀 Running the Simulation
+
+You can run the simulation in two ways:
+
+### 1️⃣ From the Python Terminal (CLI)
+Run:
+```bash
+python src/main.py
+```
+
+This will execute the simulation and save results in ```data/``` and ```results/```.
+
+### 2️⃣ Using the Web Interface (Streamlit)
+
+Launch the interactive UI with:
+
+```bash
+streamlit run src/app.py
+```
+
+Then follow the on-screen instructions in your browser.
