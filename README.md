@@ -44,7 +44,6 @@ _FuseNet_ is a computational social science experiment that models and analyses 
 │── README.md                     # Project documentation
 
 
-
 ## 🚀 Running the Simulation
 
 You can run the simulation in two ways:
@@ -64,5 +63,4 @@ Launch the interactive UI with:
 ```bash
 streamlit run src/app.py
 ```
-
 Then follow the on-screen instructions in your browser.
