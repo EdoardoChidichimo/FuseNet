@@ -1,7 +1,21 @@
-openai==1.32.0
-spacy==3.7.4
-networkx==3.2.1
-numpy==1.26.4
-pandas==2.2.2
-tqdm==4.66.5
-requests==2.32.3
+# Core Libraries
+numpy
+pandas
+networkx
+matplotlib
+tqdm
+json5
+Pillow 
+
+# Web Interface
+streamlit
+streamlit-components
+watchdog
+
+# Graph Visualisation
+gravis
+pygraphviz
+
+# Machine Learning / LLM Integration
+openai  
+llamaapi  
