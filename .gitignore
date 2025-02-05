@@ -1,8 +1,6 @@
 src/__pycache__/
 __pycache__/
 next_steps.txt
-data/emojis
 results/*
 data/*
 !data/personas.txt
-!data/.gitkeep

@@ -2,9 +2,9 @@ import os
 import spacy
 import openai
 import json
-import google.generativeai as genai
+# import google.generativeai as genai
 from openai import OpenAI
-from llamaapi import LlamaAPI
+# from llamaapi import LlamaAPI
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 def generate_llm_response(context, llm_model):

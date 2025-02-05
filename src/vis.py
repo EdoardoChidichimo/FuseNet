@@ -139,8 +139,11 @@ def fused_network_interactive(output_file: str):
         show_menu_toggle_button=True
     )
     
-    fig.export_html(f"results/{output_file}_fused_network.html", overwrite=True)
-    print(f"Visualisation saved as results/{output_file}_fused_network.html")
+    html_file_path = f"results/interactive_{output_file}.html"
+    gv.d3(network_list).export_html(html_file_path, overwrite=True)
+    print(f"Visualisation saved as {html_file_path}")
+
+    return html_file_path
 
 
 def fused_network_gif(output_file: str, parameters_details: str):
@@ -260,10 +263,8 @@ def fused_network_gif(output_file: str, parameters_details: str):
 
     ani = animation.FuncAnimation(fig, update, frames=num_generations, interval=1000, repeat=True)
 
-    ani.save(f"results/{output_file}_fused_network.gif", writer="pillow", fps=1)
-    print(f"Animation saved as results/{output_file}_fused_network.gif")
+    gif_file_path = f"results/GIF_{output_file}.gif"
+    ani.save(gif_file_path, writer="pillow", fps=1)
+    print(f"Animation saved as {gif_file_path}")
 
-
-if __name__ == "__main__":
-    fused_network_interactive("test_explanation_gpt-3_5-turbo_fully_connected_abortion_ban_log")
-    fused_network_gif("test_explanation_gpt-3_5-turbo_fully_connected_abortion_ban_log", "Parameters: No. of agents: 5, No. of Generations: 3, Exploration Probability: 0.2, Initial Network Structure: fully_connected\nTopic: abortion ban, VLU Fraction: 0.8, LLM Model: gpt-3.5-turbo, Self-regulating (à la Piao et al., 2025): False.")
+    return gif_file_path
