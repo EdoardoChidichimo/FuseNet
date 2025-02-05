@@ -42,7 +42,7 @@ _FuseNet_ is a computational social science experiment that models and analyses 
 │   ├── vis.py                    # Creates a frame-by-frame animation of the network evolution
 │── requirements.txt              # Dependencies needed to run the project
 │── README.md                     # Project documentation
-
+```
 
 
 ## 🚀 Running the Simulation
