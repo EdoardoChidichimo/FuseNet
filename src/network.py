@@ -2,8 +2,8 @@ import networkx as nx
 import random
 from agent import Agent
 
-def create_network(num_agents, llm_model, topic, network_structure, regulating, connection_prob, 
-                   k_neighbour, rewiring_prob, VLU_fraction, exploration_prob, provides_explanation, debug):
+def initialise_simulation(num_agents, llm_model, topic, has_persona, network_structure, regulating, connection_prob, 
+                        k_neighbour, rewiring_prob, VLU_fraction, exploration_prob, provides_explanation, debug):
     """Creates a social network graph and initialises agents."""
 
     graph_generators = {
@@ -18,18 +18,20 @@ def create_network(num_agents, llm_model, topic, network_structure, regulating, 
     VLU_agents = set(random.sample(list(G.nodes), int(VLU_fraction * num_agents)))
 
     # Load personas from file
-    with open("data/personas.txt", "r") as file:
-        personas = [persona.strip() for persona in file.readline().split(",")]
+    personas = []
+    if has_persona:
+        with open("data/personas.txt", "r") as file:
+            personas = [persona.strip() for persona in file.readline().split(",")]
 
-    # Initialise agents
+    # Initialise agents (100 personas in total, cycled through if more necessary)
     agents = {
         node: Agent(node, llm_model, topic, "VLU" if node in VLU_agents else "non-VLU",
-                    personas[node], regulating, set(G.neighbors(node)), exploration_prob, 
+                    personas[node % len(personas)] if has_persona else None, regulating, set(G.neighbors(node)), exploration_prob, 
                     provides_explanation, debug)
         for node in G.nodes
     }
 
-    # Store initial social circles
+    # Store initial social network structure
     initial_social_circle = {node: list(G.neighbors(node)) for node in G.nodes}
 
     return G, agents, initial_social_circle

@@ -1,7 +1,5 @@
 import os
 import spacy
-import openai
-import json
 # import google.generativeai as genai
 from openai import OpenAI
 # from llamaapi import LlamaAPI

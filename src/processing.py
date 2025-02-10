@@ -1,5 +1,4 @@
 from utils import deadly_cocktail_strength
-import streamlit as st
 
 def generate_posts(agents, global_posts, post_upvotes, post_cocktail_scores, progress_bar=None):
     """Generates posts for each agent and calculates their impact."""
@@ -10,7 +9,6 @@ def generate_posts(agents, global_posts, post_upvotes, post_cocktail_scores, pro
         post_upvotes[post] = 0
         post_cocktail_scores[post] = deadly_cocktail_strength(post)
         
-        # ✅ Only update progress bar if it's not None
         if progress_bar:
             progress_bar.update(1)
 

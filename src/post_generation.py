@@ -17,7 +17,7 @@ class PostGenerator:
             )
 
         context = f"I am about to post on social media {f'about {self.agent.topic}' if self.agent.topic else ''}.\n"
-        context += f"My persona: {self.agent.persona}\n"
+        context += f"My persona: {self.agent.persona}\n" if self.agent.persona else ""
         context += f"My style summary: {self.agent.reflection}\n"
         context += f"My most successful posts: {self.agent.previous_posts[-3:]}\n"
         context += context_extension

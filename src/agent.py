@@ -3,7 +3,6 @@ from reflection import Reflector
 from regulation import Regulator
 from interaction import InteractionHandler
 from post_generation import PostGenerator
-from utils import generate_llm_response
 
 class Agent:
     def __init__(self, node_id: int, llm_model: str, topic: str, role: str, persona: str, regulating: bool, social_circle: set, exploration_prob: float, provides_explanation: bool, debug: bool):
@@ -34,3 +33,4 @@ class Agent:
     def interact(self, posts):
         """Handles interactions with social media content."""
         return self.interaction_handler.interact(posts)
+    

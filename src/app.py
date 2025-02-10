@@ -1,5 +1,5 @@
 import streamlit as st
-from network import create_network
+from network import initialise_simulation
 from simulation import run_simulation
 from analysis import analyse_results
 
@@ -17,7 +17,8 @@ num_agents = st.sidebar.slider("Number of Agents", min_value=2, max_value=100, v
 generations = st.sidebar.slider("Number of Generations", min_value=1, max_value=10, value=3)
 
 llm_model = st.sidebar.selectbox("LLM Model", ["gpt-3.5-turbo", "llama3.1-70b", "gpt-4o"])
-topic = st.sidebar.text_input("Simulation Topic", value="fatphobia")
+topic = st.sidebar.text_input("Simulation Topic", value="gun control")
+has_persona = st.sidebar.checkbox("Enable Personas", value=True)
 
 network_structure = st.sidebar.selectbox(
     "Network Structure", 
@@ -41,6 +42,7 @@ if st.button("🚀 Run Simulation"):
         "num_agents": num_agents,
         "llm_model": llm_model,
         "topic": topic,
+        "has_persona": has_persona,
         "network_structure": network_structure,
         "regulating": regulating,
         "connection_prob": connection_prob,
@@ -52,7 +54,7 @@ if st.button("🚀 Run Simulation"):
         "debug": debug
     }
 
-    G, agents, initial_social_circle = create_network(**SIMULATION_CONFIG)
+    G, agents, initial_social_circle = initialise_simulation(**SIMULATION_CONFIG)
 
     output_file = f"test_explanation_{llm_model.replace('.', '_')}_{network_structure}_{topic.replace(' ', '_')}_log"
 
@@ -60,8 +62,6 @@ if st.button("🚀 Run Simulation"):
     
     st.success("✅ Simulation Completed!")
     
-    output_file = "test_explanation_gpt-3_5-turbo_random_fatphobia_log"
-
     analyse_results(output_file, SIMULATION_CONFIG, is_streamlit)
     st.info(f"Results saved as `{output_file}`")
 

@@ -1,4 +1,4 @@
-from network import create_network
+from network import initialise_simulation
 from simulation import run_simulation
 from analysis import analyse_results
 
@@ -8,6 +8,7 @@ SIMULATION_CONFIG = {
     "num_agents": 5,
     "llm_model": "gpt-3.5-turbo",
     "topic": "abortion ban",
+    "has_persona": True,
     "network_structure": "fully_connected",
     "regulating": False,
     "connection_prob": 1,
@@ -20,7 +21,7 @@ SIMULATION_CONFIG = {
     "debug": False
 }
 
-G, agents, initial_social_circle = create_network(**SIMULATION_CONFIG)
+G, agents, initial_social_circle = initialise_simulation(**SIMULATION_CONFIG)
 
 output_file = f"{SIMULATION_CONFIG['llm_model'].replace('.', '_')}_{SIMULATION_CONFIG['network_structure']}_{SIMULATION_CONFIG['topic'].replace(' ', '_')}_log"
 
