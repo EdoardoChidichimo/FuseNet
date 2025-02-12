@@ -17,6 +17,7 @@ num_agents = st.sidebar.slider("Number of Agents", min_value=2, max_value=100, v
 generations = st.sidebar.slider("Number of Generations", min_value=1, max_value=10, value=3)
 
 llm_model = st.sidebar.selectbox("LLM Model", ["gpt-3.5-turbo", "llama3.1-70b", "gpt-4o"])
+temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.7)
 topic = st.sidebar.text_input("Simulation Topic", value="gun control")
 has_persona = st.sidebar.checkbox("Enable Personas", value=True)
 
@@ -41,6 +42,7 @@ if st.button("🚀 Run Simulation"):
     SIMULATION_CONFIG = {
         "num_agents": num_agents,
         "llm_model": llm_model,
+        "temperature": temperature,
         "topic": topic,
         "has_persona": has_persona,
         "network_structure": network_structure,

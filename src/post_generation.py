@@ -23,7 +23,7 @@ class PostGenerator:
         context += context_extension
         context += "Return only the post in 280 characters or less."
 
-        new_post = generate_llm_response(context, self.agent.llm_model)
+        new_post = generate_llm_response(context, self.agent.llm_model, self.agent.temperature)
 
         # Regulate the post (if regulating) and generate a new one if it doesn't pass
         if self.agent.regulating and not self.agent.regulator.regulate(new_post):

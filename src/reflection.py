@@ -18,7 +18,7 @@ class Reflector:
         if self.agent.role == "VLU":
             context += " Include that I am a violent language user."
 
-        self.agent.reflection = generate_llm_response(context, self.agent.llm_model)
+        self.agent.reflection = generate_llm_response(context, self.agent.llm_model, self.agent.temperature)
 
         if self.agent.debug:
             print("Reflection:", self.agent.reflection)

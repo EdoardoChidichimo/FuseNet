@@ -7,6 +7,7 @@ is_streamlit = False
 SIMULATION_CONFIG = {
     "num_agents": 5,
     "llm_model": "gpt-3.5-turbo",
+    "temperature": 0.7,
     "topic": "abortion ban",
     "has_persona": True,
     "network_structure": "fully_connected",

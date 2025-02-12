@@ -54,7 +54,7 @@ class InteractionHandler:
             context += "EXPLANATIONS:\n1: Ignore: Explanation\n2: Upvote: Explanation\n"
         context += f"Posts:\n{message_list}"
 
-        llm_response = generate_llm_response(context, self.agent.llm_model)
+        llm_response = generate_llm_response(context, self.agent.llm_model, self.agent.temperature)
 
         # Process LLM response
         returned_decisions, explanations = retrieve_decisions_and_explanations(llm_response, self.agent.provides_explanation, mapping)

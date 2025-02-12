@@ -11,6 +11,6 @@ class Regulator:
         context = f"Given I am a social media user with this context: {self.agent.reflection}\n"
         context += f"I am about to {action}. Does my action align given the context? Return just 'yes' or 'no'."
 
-        feedback = generate_llm_response(context, self.agent.llm_model)
+        feedback = generate_llm_response(context, self.agent.llm_model, self.agent.temperature)
 
         return "yes" in feedback.lower()

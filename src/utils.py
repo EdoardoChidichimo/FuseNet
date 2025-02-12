@@ -5,7 +5,7 @@ from openai import OpenAI
 # from llamaapi import LlamaAPI
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-def generate_llm_response(context, llm_model):
+def generate_llm_response(context, llm_model, temperature=0.7):
     """
     Generates a response from the specified LLM model.
     
@@ -23,7 +23,8 @@ def generate_llm_response(context, llm_model):
         response = client.chat.completions.create(
             model=llm_model,
             messages=[{"role": "system", "content": f"You are a social media user."},
-                      {"role": "user", "content": context}]
+                      {"role": "user", "content": context}],
+            temperature=temperature
         )
         return response.choices[0].message.content
 
@@ -64,22 +65,3 @@ def generate_llm_response(context, llm_model):
 
     else:
         raise ValueError(f"Model '{llm_model}' not recognised. Please specify a supported model.")
-
-
-
-def deadly_cocktail_strength(post):
-
-    nlp = spacy.load("en_core_web_md")
-
-    # violence_score = violent(post, nlp)
-    # kinship_score = kinship(post, nlp)
-
-    # return kinship_score
-
-
-if __name__ == "__main__":
-
-    context = "What is the meaning of life?"
-    llm_model = "llama3.1-70b"
-    response = generate_llm_response(context, llm_model)
-    print(response)

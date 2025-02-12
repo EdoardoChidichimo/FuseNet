@@ -5,9 +5,10 @@ from interaction import InteractionHandler
 from post_generation import PostGenerator
 
 class Agent:
-    def __init__(self, node_id: int, llm_model: str, topic: str, role: str, persona: str, regulating: bool, social_circle: set, exploration_prob: float, provides_explanation: bool, debug: bool):
+    def __init__(self, node_id: int, llm_model: str, temperature: float, topic: str, role: str, persona: str, regulating: bool, social_circle: set, exploration_prob: float, provides_explanation: bool, debug: bool):
         self.node_id = node_id
         self.llm_model = llm_model
+        self.temperature = temperature
         self.topic = topic
         self.role = role # VLU or non-VLU
         self.persona = persona 
