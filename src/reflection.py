@@ -4,7 +4,7 @@ class Reflector:
     def __init__(self, agent):
         self.agent = agent
 
-    def reflect(self):
+    def reflect(self) -> None:
         if not self.agent.previous_posts:
             return
         

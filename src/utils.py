@@ -5,7 +5,7 @@ from openai import OpenAI
 # from llamaapi import LlamaAPI
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-def generate_llm_response(context, llm_model, temperature=0.7):
+def generate_llm_response(context, llm_model, temperature=0.7) -> str:
     """
     Generates a response from the specified LLM model.
     

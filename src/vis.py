@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-def setup_emojis():    
+def setup_emojis() -> list:    
     """Ensure all emojis are available by replacing newer emojis."""
     with open("data/personas.txt", "r") as f:
         f.readline()
@@ -20,7 +20,7 @@ def setup_emojis():
 
     return cleaned_emoji_pairs
 
-def fused_network_interactive(output_file: str):
+def fused_network_interactive(output_file: str) -> str:
     """Generate an HTML visualisation of the fused mutual follow network over generations."""
     setup_emojis()
 
@@ -140,13 +140,13 @@ def fused_network_interactive(output_file: str):
     )
     
     html_file_path = f"results/interactive_{output_file}.html"
-    gv.d3(network_list).export_html(html_file_path, overwrite=True)
+    gv.d3(network_list, node_hover_neighborhood=True).export_html(html_file_path, overwrite=True)
     print(f"Visualisation saved as {html_file_path}")
 
     return html_file_path
 
 
-def fused_network_gif(output_file: str, parameters_details: str):
+def fused_network_gif(output_file: str, parameters_details: str) -> str:
     """Generate a GIF animation of the fused mutual follow network over generations."""
 
     setup_emojis()

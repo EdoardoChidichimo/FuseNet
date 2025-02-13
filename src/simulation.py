@@ -3,7 +3,7 @@ import streamlit as st
 from tqdm import tqdm
 from processing import generate_posts, interact_with_posts, store_generation_data
 
-def run_simulation(agents, generations, output_file, initial_social_circle, is_streamlit=False):
+def run_simulation(agents, generations, output_file, initial_social_circle, is_streamlit=False) -> None:
     """Runs the social network simulation for multiple generations with both Streamlit and tqdm progress tracking."""
 
     output_path = f"data/{output_file}.json"

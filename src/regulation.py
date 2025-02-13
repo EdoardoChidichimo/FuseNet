@@ -4,7 +4,7 @@ class Regulator:
     def __init__(self, agent):
         self.agent = agent
 
-    def regulate(self, action):
+    def regulate(self, action) -> bool:
         if not self.agent.previous_posts:
             return True
 

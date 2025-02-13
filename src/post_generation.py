@@ -4,7 +4,7 @@ class PostGenerator:
     def __init__(self, agent):
         self.agent = agent
 
-    def create_post(self):
+    def create_post(self) -> str:
         self.agent.reflector.reflect()
 
         context_extension = ""

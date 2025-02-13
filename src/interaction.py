@@ -1,7 +1,7 @@
 from utils import generate_llm_response
 import random
 
-def retrieve_decisions_and_explanations(llm_response: str, contains_explanations: bool, mapping: dict):
+def retrieve_decisions_and_explanations(llm_response: str, contains_explanations: bool, mapping: dict) -> tuple[list[int], dict[int, str]]:
     """Extracts decisions and explanations from the LLM response."""
     explanations = {}
 
@@ -29,7 +29,7 @@ def retrieve_decisions_and_explanations(llm_response: str, contains_explanations
     
     return decisions, explanations
   
-def check_decisions(decisions, message_list):
+def check_decisions(decisions, message_list) -> list[int]:
     """Ensures the number of decisions matches the number of messages."""
     if len(decisions) > len(message_list):
         return decisions[:len(message_list)]
@@ -40,7 +40,7 @@ class InteractionHandler:
     def __init__(self, agent):
         self.agent = agent
 
-    def process_posts(self, messages, mapping, decision_mapping, context_intro):
+    def process_posts(self, messages, mapping, decision_mapping, context_intro) -> tuple[list[tuple[str, int]], list[int], dict[int, str]]:
         """Handles decision-making for both followed and non-followed posts."""
         if not messages:
             return set(), [], {}
@@ -70,7 +70,7 @@ class InteractionHandler:
 
         return results[1], results[2], explanations  # Unpack upvoted, removed, explanations
 
-    def process_followed_posts(self, followed_messages, followed_mapping):
+    def process_followed_posts(self, followed_messages, followed_mapping) -> tuple[list[tuple[str, int]], list[int], dict[int, str]]:
         """Handles decision-making for followed posts."""
         return self.process_posts(
             messages=followed_messages,
@@ -82,7 +82,7 @@ class InteractionHandler:
             context_intro=f"My social media style:\n{self.agent.reflection}\nDecide for each post:\n0: Ignore\n1: Upvote\n2: Unfollow"
         )
 
-    def explore_posts(self, non_followed_messages, non_followed_mapping):
+    def explore_posts(self, non_followed_messages, non_followed_mapping) -> tuple[list[tuple[str, int]], list[int], dict[int, str]]:
         """Handles decision-making for non-followed posts."""
         return self.process_posts(
             messages=non_followed_messages,
@@ -95,7 +95,7 @@ class InteractionHandler:
             context_intro=f"My social media style summary:\n{self.agent.reflection}\nThese are posts from users you do not follow. Choose for each post:\n0: Ignore\n1: Upvote\n2: Follow\n3: Upvote & Follow"
         )
 
-    def interact(self, messages):
+    def interact(self, messages) -> tuple[list[tuple[str, int]], list[int], dict[int, str]]:
 
         # Step 1: Filter messages into followed and non-followed posts
         followed_messages = []

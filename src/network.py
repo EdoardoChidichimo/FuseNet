@@ -2,9 +2,10 @@ import networkx as nx
 import random
 from agent import Agent
 
-def initialise_simulation(num_agents, llm_model, topic, has_persona, network_structure, regulating, connection_prob, 
-                        k_neighbour, rewiring_prob, VLU_fraction, exploration_prob, provides_explanation, debug):
+def initialise_simulation(SIMULATION_CONFIG) -> tuple[dict[int, Agent], dict[int, list[int]]]:
     """Creates a social network graph and initialises agents."""
+
+    num_agents, _, llm_model, temperature, topic, has_persona, network_structure, regulating, connection_prob, k_neighbour, rewiring_prob, VLU_fraction, exploration_prob, provides_explanation, debug = SIMULATION_CONFIG.values()
 
     graph_generators = {
         "random": lambda: nx.erdos_renyi_graph(num_agents, connection_prob, seed=42),
@@ -25,7 +26,7 @@ def initialise_simulation(num_agents, llm_model, topic, has_persona, network_str
 
     # Initialise agents (100 personas in total, cycled through if more necessary)
     agents = {
-        node: Agent(node, llm_model, topic, "VLU" if node in VLU_agents else "non-VLU",
+        node: Agent(node, llm_model, temperature, topic, "VLU" if node in VLU_agents else "non-VLU",
                     personas[node % len(personas)] if has_persona else None, regulating, set(G.neighbors(node)), exploration_prob, 
                     provides_explanation, debug)
         for node in G.nodes
@@ -34,4 +35,4 @@ def initialise_simulation(num_agents, llm_model, topic, has_persona, network_str
     # Store initial social network structure
     initial_social_circle = {node: list(G.neighbors(node)) for node in G.nodes}
 
-    return G, agents, initial_social_circle
+    return agents, initial_social_circle
